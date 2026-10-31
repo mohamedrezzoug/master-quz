@@ -22,3 +22,17 @@
 - البيانات (التقدم، الأخطاء، الملفات…) كتبقى محفوظة فالجهاز. باش تنقلها من جهاز لآخر: **Plan & ECTS ← Sicherung ← Daten kopieren** ومن بعد **Wiederherstellen** فالجهاز الآخر.
 - لتحديث التطبيق: بدل `index.html` فـ GitHub بالنسخة الجديدة، والتطبيق كيتحدث بوحدو.
 - الـ repository خاصو يكون **Public** باش GitHub Pages يخدم مجانا، يعني أي واحد عندو الرابط يقدر يشوف المحتوى (ما فيه حتى معلومة شخصية، غير جدول الحصص).
+
+## 4) تحويله لملف APK (أندرويد)
+1. خاص التطبيق يكون منشور فـ GitHub Pages (الخطوة 1).
+2. دخل لـ **https://www.pwabuilder.com** ← لصق الرابط `https://mohamedrezzoug.github.io/master-quz/` ← **Start**.
+3. ضغط **Package For Stores** ← **Android** ← **Generate Package**.
+4. كيعطيك ملف zip فيه **APK** (للتنصيب المباشر) و **AAB** (لـ Google Play) و **signing key**.
+   - احتافظ بملف المفتاح (signing.keystore + كلمة السر) فبلاصة آمنة: خاصك بيه باش تدير أي تحديث من بعد.
+5. صيفط الـ APK للتليفون ← حلّو ← اقبل «تثبيت من مصادر غير معروفة» ← تنصيب.
+
+## 5) الآيفون (iPhone / iPad)
+- ما كاينش APK فالآيفون. الطريقة هي: حل الرابط فـ **Safari** ← زر المشاركة ⬆️ ← **Sur l'écran d'accueil / Zum Home-Bildschirm** ← Ajouter.
+- كتبان أيقونة Master Q&Z فالشاشة، وكيتحل فشاشة كاملة بلا شريط Safari، وكيخدم بلا إنترنت.
+- التطبيق كيبين رسالة صغيرة فالآيفون كتشرح هاد الخطوة.
+- باش يكون فـ App Store: خاص Mac + Xcode + حساب Apple Developer (99$ فالعام). PWABuilder كيعطي مشروع iOS جاهز ولكن خاصو يتبنى فـ Mac.

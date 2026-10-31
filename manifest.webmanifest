@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "Master Q&Z · Lernbegleiter",
   "short_name": "Master Q&Z",
   "description": "Lernbegleiter für den M.Sc. Qualitäts- und Zuverlässigkeitsingenieurwesen (BUW, PO2024)",
@@ -10,8 +11,27 @@
   "theme_color": "#16305a",
   "lang": "de",
   "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
-    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
-  ]
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "dir": "auto",
+  "prefer_related_applications": false
 }

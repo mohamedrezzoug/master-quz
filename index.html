@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Master Q&Z">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -478,7 +478,7 @@ function vHome(){
   const open=S.errors.filter(e=>!e.done).length;
   const next=MODS.find(m=>modPct(m.id)<100)||MODS[0];
   const lastM=MODS.find(m=>m.id===S.last)||next;
-  return `<div class="row between"><h1>${t("hello")}</h1><button class="btn pri" id="instBtn" style="${deferredPrompt?"":"display:none"}">📲 ${tr("نصبي التطبيق","Installer l'app","Install app","App installieren")}</button></div><p class="sub">${t("homeSub")}</p>${searchHTML()}
+  return `<div class="row between"><h1>${t("hello")}</h1><button class="btn pri" id="instBtn" style="${deferredPrompt?"":"display:none"}">📲 ${tr("نصبي التطبيق","Installer l'app","Install app","App installieren")}</button></div><p class="sub">${t("homeSub")}</p>${IOS_HINT()}${searchHTML()}
   <div class="grid g3">
     <div class="card"><div class="small">${t("ectsDone")}</div><div class="stat">${tot}<small> / 120</small></div><div class="bar" style="margin-top:10px"><i style="width:${tot/120*100}%"></i></div></div>
     <div class="card"><div class="small">${t("modsStudied")}</div><div class="stat">${avg}<small>%</small></div><div class="bar amb" style="margin-top:10px"><i style="width:${avg}%"></i></div></div>
@@ -1132,17 +1132,29 @@ const dePrefer=()=>S.lang==="de"||S.lang==="ar";
 
 /* ---- Text-to-speech ---- */
 let speaking=null;
+let VOICES=[];function loadVoices(){try{VOICES=window.speechSynthesis?speechSynthesis.getVoices():[];}catch(e){}}
+loadVoices();try{if(window.speechSynthesis)speechSynthesis.onvoiceschanged=loadVoices;}catch(e){}
+function pickVoice(loc){if(!VOICES.length)loadVoices();const l2=loc.slice(0,2).toLowerCase();const c=VOICES.filter(v=>(v.lang||"").replace("_","-").toLowerCase().startsWith(l2));
+ const pref={de:["anna","helena","petra","markus","martin","google deutsch"],fr:["thomas","amélie","amelie","audrey","google français"],en:["samantha","daniel","karen","google us english"]}[l2]||[];
+ return c.find(v=>(v.lang||"").replace("_","-").toLowerCase()===loc.toLowerCase()&&pref.some(p=>v.name.toLowerCase().includes(p)))||c.find(v=>(v.lang||"").replace("_","-").toLowerCase()===loc.toLowerCase())||c.find(v=>pref.some(p=>v.name.toLowerCase().includes(p)))||c[0]||null;}
+const VOICE_HELP={de:["الألمانية","Allemand","German","Deutsch"],fr:["الفرنسية","Français","French","Französisch"],en:["الإنجليزية","Anglais","English","Englisch"]};
 function speak(text,lang,btn){
-  try{const ss=window.speechSynthesis;if(!ss){toast("Sprachausgabe nicht verfügbar / غير متوفرة");return;}
+  try{const ss=window.speechSynthesis;if(!ss){toast("Sprachausgabe nicht verfügbar");return;}
     if(speaking){ss.cancel();const was=speaking;speaking=null;document.querySelectorAll(".spk.on").forEach(b=>{b.classList.remove("on");b.innerHTML="🔊 "+t("listen");});if(was===btn)return;}
-    const loc={de:"de-DE",ar:"ar-SA",fr:"fr-FR",en:"en-US"}[lang]||"de-DE";
-    const parts=String(text).replace(/\s+/g," ").match(/[^.!?؟]+[.!?؟]?/g)||[text];
-    const vs=ss.getVoices();const v=vs.find(x=>x.lang&&x.lang.toLowerCase().startsWith(loc.slice(0,2)));
-    parts.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang=loc;if(v)u.voice=v;u.rate=S.rate||0.95;if(i===parts.length-1)u.onend=()=>{speaking=null;if(btn){btn.classList.remove("on");btn.innerHTML="🔊 "+t("listen");}};ss.speak(u);});
+    ss.cancel();
+    const loc={de:"de-DE",fr:"fr-FR",en:"en-US"}[lang]||"de-DE";
+    const v=pickVoice(loc);
+    if(!v){const h=VOICE_HELP[lang]||VOICE_HELP.de;showVoiceHelp(h);return;}
+    const parts=String(text).replace(/\s+/g," ").match(/[^.!?]+[.!?]?/g)||[text];
+    parts.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p.trim());u.voice=v;u.lang=v.lang||loc;u.rate=S.rate||0.95;if(i===parts.length-1)u.onend=()=>{speaking=null;if(btn){btn.classList.remove("on");btn.innerHTML="🔊 "+t("listen");}};ss.speak(u);});
     speaking=btn;if(btn){btn.classList.add("on");btn.innerHTML="⏹ "+t("stop");}
-    if(!v)toast(tr("ما لقيناش صوت بهاد اللغة فالجهاز — كيستعمل الصوت الافتراضي","Pas de voix pour cette langue sur l'appareil","No voice for this language on this device","Keine Stimme für diese Sprache auf dem Gerät"));
   }catch(e){toast("TTS error");}
 }
+function showVoiceHelp(h){const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ const msg=ios?tr(`ما كاينش صوت ${h[0]} فالآيفون. زيديه من: Réglages ← Accessibilité ← Contenu énoncé ← Voix ← ${h[1]} ← حمّلي صوت (مثلا Anna للألمانية)، ومن بعد سدّي التطبيق وحليه.`,`Aucune voix ${h[1]} sur l'iPhone. Réglages → Accessibilité → Contenu énoncé → Voix → ${h[1]} → télécharger une voix, puis rouvrir l'app.`,`No ${h[2]} voice on this iPhone. Settings → Accessibility → Spoken Content → Voices → ${h[2]} → download a voice, then reopen the app.`,`Keine ${({Deutsch:"deutsche",Französisch:"französische",Englisch:"englische"})[h[3]]} Stimme auf dem iPhone. Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → ${h[3]} → Stimme laden (z. B. Anna), dann App neu öffnen.`)
+ :tr(`ما كاينش صوت ${h[0]} فهاد الجهاز. زيديه من إعدادات الجهاز (تحويل النص إلى كلام) ومن بعد عاودي حلي التطبيق.`,`Aucune voix ${h[1]} sur cet appareil. Ajoutez-la dans les réglages (synthèse vocale), puis rouvrez l'app.`,`No ${h[2]} voice on this device. Add one in the system text-to-speech settings, then reopen the app.`,`Keine ${({Deutsch:"deutsche",Französisch:"französische",Englisch:"englische"})[h[3]]} Stimme auf diesem Gerät. In den Systemeinstellungen (Text-zu-Sprache) hinzufügen und App neu öffnen.`);
+ let d=document.getElementById("vhelp");if(!d){d=document.createElement("div");d.id="vhelp";d.className="notice amb";d.style.cssText="position:fixed;left:12px;right:12px;bottom:84px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.18)";document.body.appendChild(d);}
+ d.innerHTML=`<div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:22px">🔊</span><div style="flex:1">${msg}</div><button class="btn sm ghost" onclick="this.closest('#vhelp').remove()">✕</button></div>`;}
 const spkBtn=(id,lang)=>`<button class="btn sm spk" data-spk="${id}" data-spl="${lang}">🔊 ${t("listen")}</button>`;
 const SPK={};
 
@@ -1406,6 +1418,9 @@ document.addEventListener("change",e=>{const el=e.target;
  if(el.id==="tmMod"){tm.mod=el.value;}
 });
 
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const isStandalone=()=>window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+function IOS_HINT(){if(!isIOS||isStandalone()||S.iosHintOff)return "";return `<div class="notice" style="margin-bottom:14px;display:flex;gap:10px;align-items:center"><span style="font-size:26px">📲</span><div style="flex:1">${tr("باش تنصبي التطبيق فالآيفون: ضغطي على زر المشاركة ⬆️ تحت فـ Safari، ومن بعد «Sur l'écran d'accueil / Zum Home-Bildschirm».","Pour installer sur iPhone : touchez Partager ⬆️ dans Safari, puis « Sur l'écran d'accueil ».","To install on iPhone: tap Share ⬆️ in Safari, then “Add to Home Screen”.","Auf dem iPhone installieren: in Safari auf Teilen ⬆️ tippen, dann „Zum Home-Bildschirm“.")}</div><button class="btn sm ghost" onclick="S.iosHintOff=1;persist();render()">✕</button></div>`;}
 /* ---- PWA: install button, voice search, service worker ---- */
 let deferredPrompt=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;const b=document.getElementById("instBtn");if(b)b.style.display="";});
 window.addEventListener("appinstalled",()=>{deferredPrompt=null;toast("✓ App installiert");});
